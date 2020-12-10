@@ -1,0 +1,5 @@
+pip install pydot -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install cython -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install pycocotools -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install scipy -i https://mirror.baidu.com/pypi/simple
+pip install opencv-python -i https://mirror.baidu.com/pypi/simple
