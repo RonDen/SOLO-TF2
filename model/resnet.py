@@ -3,15 +3,14 @@
 #
 #   Author      : LuoDeng
 #   Created date: 2020-12-24 22:02:33
-#   Description : ResNet Backbone
+#   Description : ResNet Backbone，R50 and R101 Implemented
 #
 # ================================================================
 
 import tensorflow as tf
 import tensorflow.keras.layers as layers
 from tensorflow.python.keras import activations
-# from model.custom_layers import Conv2dUnit, Conv3x3
-from custom_layers import Conv2dUnit, Conv3x3
+from model.custom_layers import Conv2dUnit, Conv3x3
 
 
 class ConvBlock(object):
@@ -136,44 +135,41 @@ class ResNet(object):
         return [s4, s8, s16, s32]
 
 
-def _test1():
-    x = tf.random.uniform(shape=(1, 416, 416, 3), minval=-1, maxval=1)
-    conv1 = Conv2dUnit(64, 7, strides=2, padding='same', use_bias=False, bn=True, activation='relu')
-    maxpool = layers.MaxPool2D(pool_size=3, strides=2, padding='same')
-    x = conv1(x)
-    print(x.shape)
-    x = maxpool(x)
-    print(x.shape)
-    
-    stage2_0 = ConvBlock([64, 64, 256], stride=1)
-    x = stage2_0(x)
-    print(x.shape)
-    stage2_1 = IdentityBlock([64, 64, 256])
-    x = stage2_1(x)
-    print(x.shape)
-    stage2_2 = IdentityBlock([64, 64, 256])
-    x = stage2_2(x)
-    print(x.shape)
-
-
-def _test_resnet50():
-    x = tf.random.uniform(shape=(1, 416, 416, 3), minval=-1, maxval=1)
-    resnet50 = ResNet(50)
-    s4, s8, s16, s32 = resnet50(x)
-    print(s4.shape, s8.shape, s16.shape, s32.shape)
-
-def _test_resnet101():
-    x = tf.random.uniform(shape=(1, 416, 416, 3), minval=-1, maxval=1)
-    resnet101 = ResNet(101)
-    s4, s8, s16, s32 = resnet101(x)
-    print(s4.shape, s8.shape, s16.shape, s32.shape)
-
 
 if __name__ == "__main__":
+    x = tf.random.uniform(shape=(1, 416, 416, 3), minval=-1, maxval=1)
+
+    def _test1():
+        conv1 = Conv2dUnit(64, 7, strides=2, padding='same', use_bias=False, bn=True, activation='relu')
+        maxpool = layers.MaxPool2D(pool_size=3, strides=2, padding='same')
+        x = conv1(x)
+        print(x.shape)
+        x = maxpool(x)
+        print(x.shape)
+        
+        stage2_0 = ConvBlock([64, 64, 256], stride=1)
+        x = stage2_0(x)
+        print(x.shape)
+        stage2_1 = IdentityBlock([64, 64, 256])
+        x = stage2_1(x)
+        print(x.shape)
+        stage2_2 = IdentityBlock([64, 64, 256])
+        x = stage2_2(x)
+        print(x.shape)
+
+    def _test_resnet50():
+        resnet50 = ResNet(50)
+        s4, s8, s16, s32 = resnet50(x)
+        print(s4.shape, s8.shape, s16.shape, s32.shape)
+
+    def _test_resnet101():
+        resnet101 = ResNet(101)
+        s4, s8, s16, s32 = resnet101(x)
+        print(s4.shape, s8.shape, s16.shape, s32.shape)
+    
     print("-"*10, 'test1', "-"*10)
     _test1()
     print("-"*10, 'test resnet50', "-"*10)
     _test_resnet50()
     print("-"*10, 'test_resnet101', "-"*10)
     _test_resnet101()
-
