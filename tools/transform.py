@@ -140,10 +140,8 @@ class MixupImage(BaseOperator):
         h = max(img1.shape[0], img2.shape[0])
         w = max(img1.shape[1], img2.shape[1])
         img = np.zeros((h, w, img1.shape[2]), 'float32')
-        img[:img1.shape[0], :img1.shape[1], :] = \
-            img1.astype('float32') * factor
-        img[:img2.shape[0], :img2.shape[1], :] += \
-            img2.astype('float32') * (1.0 - factor)
+        img[:img1.shape[0], :img1.shape[1], :] = img1.astype('float32') * factor
+        img[:img2.shape[0], :img2.shape[1], :] += img2.astype('float32') * (1.0 - factor)
         return img.astype('uint8')
 
     def _concat_mask(self, mask1, mask2, gt_score1, gt_score2):
@@ -216,6 +214,7 @@ class PhotometricDistort(BaseOperator):
             delta = np.random.uniform(-delta, delta)
             image += delta
 
+        image[image < 0] = 0
         state = np.random.randint(2)
         if state == 0:
             if np.random.randint(2):
@@ -489,10 +488,10 @@ class NormalizeBox(BaseOperator):
         width = sample['w']
         height = sample['h']
         for i in range(gt_bbox.shape[0]):
-            gt_bbox[i][0] = gt_bbox[i][0] / width
-            gt_bbox[i][1] = gt_bbox[i][1] / height
-            gt_bbox[i][2] = gt_bbox[i][2] / width
-            gt_bbox[i][3] = gt_bbox[i][3] / height
+            gt_bbox[i][0] /= width
+            gt_bbox[i][1] /= height
+            gt_bbox[i][2] /= width
+            gt_bbox[i][3] /= height
         sample['gt_bbox'] = gt_bbox
         return sample
 
@@ -599,8 +598,8 @@ class RandomShape(BaseOperator):
 
             scale_x = float(shape[0]) / w
             scale_y = float(shape[1]) / h
+            scale_factor = min(scale_x, scale_y)
             if self.keep_ratio:
-                scale_factor = min(scale_x, scale_y)
                 im = cv2.resize(im, None, None, fx=scale_factor, fy=scale_factor, interpolation=method)
             else:
                 im = cv2.resize(im, None, None, fx=scale_x, fy=scale_y, interpolation=method)
@@ -832,8 +831,8 @@ class Gt2SoloTarget(BaseOperator):
                            gt_masks_raw,
                            featmap_sizes=None):
         # ins
-        gt_areas = np.sqrt((gt_bboxes_raw[:, 2] - gt_bboxes_raw[:, 0]) * (   # 平均边长，几何平均数， [n, ]
-                gt_bboxes_raw[:, 3] - gt_bboxes_raw[:, 1]))
+        # 平均边长，几何平均数， [n, ]
+        gt_areas = np.sqrt((gt_bboxes_raw[:, 2] - gt_bboxes_raw[:, 0]) * (gt_bboxes_raw[:, 3] - gt_bboxes_raw[:, 1]))
 
         gt_objs_per_layer = []
         gt_clss_per_layer = []
