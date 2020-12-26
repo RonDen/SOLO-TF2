@@ -9,9 +9,8 @@
 
 import tensorflow as tf
 import tensorflow.keras.layers as layers
+from tensorflow.keras.layers import Layer
 from tensorflow.keras import Model
-from tensorflow.python.keras.backend import var
-from tensorflow.python.keras.layers import Layer
 
 
 METHOD_BICUBIC = 'BICUBIC'
@@ -72,7 +71,6 @@ class Conv3x3(object):
         return x
 
 
-
 class InstanceNormalization(Layer):
     """
     Instance Normalization, output shape(N, H, W, C)
@@ -131,9 +129,9 @@ class GroupNormalization(Layer):
         variance = tf.reduce_mean(t, axis=1, keepdims=True)
         std = tf.sqrt(variance + self.epsilon)
         outputs = (x_reshape - mean) / std
-        outputs = tf.reshape(outputs, (N, H * W, C))
+        outputs = tf.reshape(outputs, shape=(N, H * W, C))
         outputs = self.gamma * outputs + self.beta
-        outputs = tf.reshape(outputs, (N, H, W, C))
+        outputs = tf.reshape(outputs, shape=(N, H, W, C))
         return outputs
 
 class Resize(Model):

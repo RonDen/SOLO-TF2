@@ -9,6 +9,7 @@
 
 import tensorflow as tf
 import tensorflow.keras.layers as layers
+from tensorflow.python.keras.layers.pooling import GlobalAveragePooling1D
 from model.custom_layers import Conv2dUnit
 
 
@@ -47,7 +48,7 @@ class FPN(object):
         # FPN部分有8个卷积层
         self.lateral_convs = []
         self.fpn_convs = []
-        for i in range(self.start_level, self.backbone_end_level):
+        for _ in range(self.start_level, self.backbone_end_level):
             lateral_conv = Conv2dUnit(out_channels, 1, strides=1, padding='valid', use_bias=True, bn=False, activation=None)
             fpn_conv = Conv2dUnit(out_channels, 3, strides=1, padding='same', use_bias=True, bn=False, activation=None)
             self.lateral_convs.append(lateral_conv)
@@ -55,33 +56,31 @@ class FPN(object):
 
     def __call__(self, xs):
         num_ins = len(xs)
-        
+
         # build laterals
         laterals = []
         for i in range(num_ins):
             x = self.lateral_convs[i](xs[i + self.start_level])
             laterals.append(x)
-        
-        # build top down path
+
+        # build top-down path
         used_backbone_levels = len(laterals)
-        for i in range(used_backbone_levels - 1, 0, 1):
+        for i in range(used_backbone_levels - 1, 0, -1):
             x = layers.UpSampling2D(2)(laterals[i])
-            laterals[i - 1] = layers.add([laterals[i - 1], x])
-        
+            laterals[i-1] = layers.add([laterals[i - 1], x])
 
         # build outputs
-        # part1: from original level
+        # part 1: from original levels
         outs = []
         for i in range(used_backbone_levels):
             x = self.fpn_convs[i](laterals[i])
             outs.append(x)
-        # part2: add extra levels
+        # part 2: add extra levels
         if self.num_outs > len(outs):
-            # use maxpool to get more levels on top of outputs
+            # use max pool to get more levels on top of outputs
             # (e.g., Faster R-CNN, Mask R-CNN)
             if not self.add_extra_convs:
                 for i in range(self.num_outs - used_backbone_levels):
-                    # down 2x
                     x = layers.MaxPooling2D(pool_size=1, strides=2, padding='valid')(outs[-1])
                     outs.append(x)
             # add conv layers on top of original feature maps (RetinaNet)
@@ -94,9 +93,15 @@ if __name__ == "__main__":
     x = tf.random.uniform(shape=(1, 416, 416, 3), minval=-1, maxval=1)
 
     def _test1():
-        from model.resnet import ResNet
+        # from model.resnet import ResNet
+        from resnet import ResNet
+        global x
         r50 = ResNet(50)
-        [s4, s8, s16, s32] = r50(x)
-        
-    fpn = FPN()
-    pass
+        x = r50(x)
+        fpn = FPN(in_channels=[256, 512, 1024, 2048], out_channels=256, num_outs=5)
+        x = fpn(x)
+        print("-"*10, 'test1', "-"*10)
+        print(x[0].shape, x[1].shape, x[2].shape, x[3].shape)
+
+    _test1()
+    

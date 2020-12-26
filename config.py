@@ -39,24 +39,24 @@ class DecoupledSOLO_R50_FPN_Config(object):
         # 模式。 0-从头训练，1-读取之前的模型继续训练（model_path可以是'yolov4.h5'、'./weights/step00001000.h5'这些。）
         self.pattern = 1
         self.lr = 0.00001
-        self.batch_size = 2
+        self.batch_size = 1
         # 如果self.pattern = 1，需要指定self.model_path表示从哪个模型读取权重继续训练。
-        self.model_path = './weights/step00007000.h5'
+        self.model_path = './weights/Decoupled_SOLO_R50_1x.h5'
 
         # ========= 一些设置 =========
         # 每隔几步保存一次模型
         self.save_iter = 1000
         # 每隔几步计算一次eval集的mAP
-        self.eval_iter = 5000000
+        self.eval_iter = 5000
         # 训练多少步
         self.max_iters = 800000
 
 
         # 验证
         # self.input_shape越大，精度会上升，但速度会下降。
-        # self.input_shape = (320, 320)
+        self.input_shape = (320, 320)
         # self.input_shape = (416, 416)
-        self.input_shape = (608, 608)
+        # self.input_shape = (608, 608)
         # 验证时的分数阈值和nms_iou阈值
         self.conf_thresh = 0.001
         self.nms_thresh = 0.45

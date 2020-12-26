@@ -5,7 +5,9 @@
 .idea/
 .vscode/
 .data/
-.weights
+.weights/
+.debug/
+.temp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -85,7 +85,7 @@ class ResNet(object):
         self.stage2_2 = IdentityBlock([64, 64, 256])
 
         # stage3
-        self.stage3_0 = ConvBlock([128, 128, 512], stride=1)
+        self.stage3_0 = ConvBlock([128, 128, 512], use_dcn=use_dcn)
         self.stage3_1 = IdentityBlock([128, 128, 512], use_dcn=use_dcn)
         self.stage3_2 = IdentityBlock([128, 128, 512], use_dcn=use_dcn)
         self.stage3_3 = IdentityBlock([128, 128, 512], use_dcn=use_dcn)
@@ -96,7 +96,7 @@ class ResNet(object):
         if depth == 50:
             k = 4
         self.stage4_layers = []
-        for i in range(k):
+        for _ in range(k):
             ly = IdentityBlock([256, 256, 1024], use_dcn=use_dcn)
             self.stage4_layers.append(ly)
         self.stage4_last_layer = IdentityBlock([256, 256, 1024], use_dcn=use_dcn)
@@ -140,6 +140,7 @@ if __name__ == "__main__":
     x = tf.random.uniform(shape=(1, 416, 416, 3), minval=-1, maxval=1)
 
     def _test1():
+        global x
         conv1 = Conv2dUnit(64, 7, strides=2, padding='same', use_bias=False, bn=True, activation='relu')
         maxpool = layers.MaxPool2D(pool_size=3, strides=2, padding='same')
         x = conv1(x)

@@ -10,11 +10,16 @@
 import tensorflow as tf
 import numpy as np
 import tensorflow.keras.layers as layers
+from tensorflow.python.ops.control_flow_ops import group
 from model.custom_layers import Resize, GroupNormalization
+import tensorflow_addons as tfa
 
 def concat_coord(x):
     ins_feat = x
-    batch_size, h, w = x.shape[0], x.shape[1], x.shape[2]
+    
+    batch_size = tf.shape(input=x)[0]
+    h = tf.shape(input=x)[1]
+    w = tf.shape(input=x)[2]
     float_h, float_w = tf.cast(h, tf.float32), tf.cast(w, tf.float32)
 
     y_range = tf.range(float_h, dtype=tf.float32)     # [h, ]
@@ -143,22 +148,25 @@ class DecoupledSOLOHead(object):
 
         # repeat 7 times
         for i in range(self.stacked_convs):
-            conv2d_1 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False)
-            gn_1 = GroupNormalization(num_groups=32)
+            conv2d_1 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False, data_format='channels_last')
+            # gn_1 = GroupNormalization(num_groups=32)
+            gn_1 = tfa.layers.GroupNormalization(groups=32, axis=3)
             relu_1 = layers.ReLU()
             self.ins_convs_x.append(conv2d_1)
             self.ins_convs_x.append(gn_1)
             self.ins_convs_x.append(relu_1)
 
-            conv2d_2 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False)
-            gn_2 = GroupNormalization(num_groups=32)
+            conv2d_2 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False, data_format='channels_last')
+            # gn_2 = GroupNormalization(num_groups=32)
+            gn_2 = tfa.layers.GroupNormalization(groups=32, axis=3)
             relu_2 = layers.ReLU()
             self.ins_convs_y.append(conv2d_2)
             self.ins_convs_y.append(gn_2)
             self.ins_convs_y.append(relu_2)
 
-            conv2d_3 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False)
-            gn_3 = GroupNormalization(num_groups=32)
+            conv2d_3 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False, data_format='channels_last')
+            # gn_3 = GroupNormalization(num_groups=32)
+            gn_3 = tfa.layers.GroupNormalization(groups=32, axis=3)
             relu_3 = layers.ReLU()
             self.cate_convs.append(conv2d_3)
             self.cate_convs.append(gn_3)
