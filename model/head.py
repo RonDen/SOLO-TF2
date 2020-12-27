@@ -3,7 +3,7 @@
 #
 #   Author      : LuoDeng
 #   Created date: 2020-12-24 22:55:44
-#   Description : FPN Neck
+#   Description : SOLO Head
 #
 # ================================================================
 
@@ -12,7 +12,7 @@ import numpy as np
 import tensorflow.keras.layers as layers
 from tensorflow.python.ops.control_flow_ops import group
 from model.custom_layers import Resize, GroupNormalization
-import tensorflow_addons as tfa
+
 
 def concat_coord(x):
     ins_feat = x
@@ -150,7 +150,7 @@ class DecoupledSOLOHead(object):
         for i in range(self.stacked_convs):
             conv2d_1 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False, data_format='channels_last')
             # gn_1 = GroupNormalization(num_groups=32)
-            gn_1 = tfa.layers.GroupNormalization(groups=32, axis=3)
+            gn_1 = GroupNormalization(groups=32, axis=3)
             relu_1 = layers.ReLU()
             self.ins_convs_x.append(conv2d_1)
             self.ins_convs_x.append(gn_1)
@@ -158,7 +158,7 @@ class DecoupledSOLOHead(object):
 
             conv2d_2 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False, data_format='channels_last')
             # gn_2 = GroupNormalization(num_groups=32)
-            gn_2 = tfa.layers.GroupNormalization(groups=32, axis=3)
+            gn_2 = GroupNormalization(groups=32, axis=3)
             relu_2 = layers.ReLU()
             self.ins_convs_y.append(conv2d_2)
             self.ins_convs_y.append(gn_2)
@@ -166,7 +166,7 @@ class DecoupledSOLOHead(object):
 
             conv2d_3 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False, data_format='channels_last')
             # gn_3 = GroupNormalization(num_groups=32)
-            gn_3 = tfa.layers.GroupNormalization(groups=32, axis=3)
+            gn_3 = GroupNormalization(groups=32, axis=3)
             relu_3 = layers.ReLU()
             self.cate_convs.append(conv2d_3)
             self.cate_convs.append(gn_3)
@@ -359,7 +359,7 @@ class DecoupledSOLOHead(object):
         seg_masks_soft = mask_x * mask_y    # [11, s4, s4]  物体的mask，逐元素相乘得到
         seg_masks = seg_masks_soft > cfg.mask_thr
         sum_masks = tf.reduce_sum(input_tensor=tf.cast(seg_masks, tf.float32), axis=[1, 2])   # [11, ]  11个物体的面积
-        keep = tf.compat.v1.where(sum_masks > strides)   # 面积大于这一层的stride才保留
+        keep = tf.where(sum_masks > strides)        # 面积大于这一层的stride才保留
 
         seg_masks_soft = tf.gather_nd(seg_masks_soft, keep)   # 用概率表示的掩码
         seg_masks = tf.gather_nd(seg_masks, keep)             # 用True、False表示的掩码
@@ -385,7 +385,7 @@ class DecoupledSOLOHead(object):
             cate_scores = matrix_nms(seg_masks, cate_labels, cate_scores,
                                      kernel=cfg.kernel, sigma=cfg.sigma, sum_masks=sum_masks)
 
-            keep = tf.compat.v1.where(cate_scores > cfg.update_thr)   # 大于第二个分数阈值才保留
+            keep = tf.where(cate_scores > cfg.update_thr)       # 大于第二个分数阈值才保留
             keep = tf.reshape(keep, (-1, ))
             seg_masks_soft = tf.gather(seg_masks_soft, keep)
             cate_scores = tf.gather(cate_scores, keep)

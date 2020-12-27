@@ -15,13 +15,13 @@ import random
 import time
 import numpy as np
 import tensorflow as tf
-import keras
-import keras.layers as layers
+import tensorflow.keras.layers as layers
+import tensorflow.keras.models as models
 
 from config import DecoupledSOLO_R50_FPN_Config
 from model.head import DecoupledSOLOHead
-from model.neck import FPN
-from model.resnet import Resnet
+from model.fpn import FPN
+from model.resnet import ResNet
 from model.solo import SOLO
 from tools.cocotools import get_classes
 
@@ -95,14 +95,14 @@ use_gpu = False
 use_gpu = True
 
 # 显存分配。
-if use_gpu:
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-else:
-    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-from keras.backend.tensorflow_backend import set_session
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 1.0
-set_session(tf.Session(config=config))
+# if use_gpu:
+#     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# else:
+#     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# from keras.backend.tensorflow_backend import set_session
+# config = tf.ConfigProto()
+# config.gpu_options.per_process_gpu_memory_fraction = 1.0
+# set_session(tf.Session(config=config))
 
 if __name__ == '__main__':
     cfg = DecoupledSOLO_R50_FPN_Config()
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     classes_path = 'data/coco_classes.txt'
     # model_path可以是'solo.h5'、'./weights/step00001000.h5'这些。
     # model_path = 'solo.h5'
-    model_path = './weights/step00009000.h5'
+    model_path = './weights/step00015000.h5'
 
     # input_shape越大，精度会上升，但速度会下降。
     input_shape = (672, 672)
@@ -125,12 +125,12 @@ if __name__ == '__main__':
     num_classes = len(all_classes)
 
     inputs = layers.Input(shape=(None, None, 3))
-    resnet = Resnet(50)
+    resnet = ResNet(50)
     fpn = FPN(in_channels=[256, 512, 1024, 2048], out_channels=256, num_outs=5)
     head = DecoupledSOLOHead()
     solo = SOLO(resnet, fpn, head)
     outs = solo(inputs, cfg, eval=True)
-    solo = keras.models.Model(inputs=inputs, outputs=outs)
+    solo = models.Model(inputs=inputs, outputs=outs)
     solo.load_weights(model_path, by_name=True)
 
     if not os.path.exists('images/res/'): os.mkdir('images/res/')

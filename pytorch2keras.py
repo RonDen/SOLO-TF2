@@ -2,20 +2,23 @@
 # coding=utf-8
 # ================================================================
 #
-#   Author      : miemie2013
-#   Created date: 2020-06-12 11:37:31
-#   Description : keras_solo，复制权重
+#   Author      : LuoDeng
+#   Created date: 2020-12-26 14:37:52
+#   Description : 复制权重，将Pytorch模型权重转换为Keras模型可以读取的
 #
 # ================================================================
 import torch
-import keras
-import keras.layers as layers
+import tensorflow as tf
+import tensorflow.keras.layers as layers
+import tensorflow.keras.models as models
 
 from model.head import DecoupledSOLOHead
-from model.neck import FPN
+from model.fpn import FPN
 from model.resnet import Resnet
 from model.solo import SOLO
 
+WEIGHT_ROOT = 'weights/'
+NAME = 'Decoupled_SOLO_R50_1x'
 
 def load_weights(path):
     """ Loads weights from a compressed save file. """
@@ -23,8 +26,7 @@ def load_weights(path):
     state_dict = torch.load(path, map_location=torch.device('cpu'))
     return state_dict
 
-NAME = 'weights/Decoupled_SOLO_R50_1x'
-state_dict = load_weights(NAME + '.pth')
+state_dict = load_weights(WEIGHT_ROOT + NAME + '.pth')
 
 state_dict = state_dict['state_dict']
 
@@ -215,9 +217,10 @@ fpn = FPN(in_channels=[256, 512, 1024, 2048], out_channels=256, num_outs=5)
 head = DecoupledSOLOHead()
 solo = SOLO(resnet, fpn, head)
 outs = solo(inputs, None, eval=False)
-model = keras.models.Model(inputs=inputs, outputs=outs)
+model = models.Model(inputs=inputs, outputs=outs)
 model.summary()
-keras.utils.vis_utils.plot_model(model, to_file='solo.png', show_shapes=True)
+
+tf.keras.utils.plot_model(model, to_file=NAME + '.png', show_shapes=True)
 
 print('\nCopying...')
 for i in range(1, 53+1, 1):
@@ -241,5 +244,3 @@ for i in range(83, 94, 1):
 
 model.save(NAME + '.h5')
 print('\nDone.')
-
-
