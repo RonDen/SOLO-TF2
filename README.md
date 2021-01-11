@@ -58,6 +58,9 @@ $ tree .
 ### 参考资料
 
 [1] [SOLO: Segmenting Objects by Locations](https://arxiv.org/abs/1912.04488)
+
 [2] [SOLOv2: Dynamic and Fast Instance Segmentation](https://arxiv.org/abs/2003.10152)
+
 [3] [原作者代码仓库（Pytorch和MMdetection实现）](https://github.com/WXinlong/SOLO)
+
 [4] [Keras-SOLO](https://github.com/miemie2013/Keras-SOLO)
