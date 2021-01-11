@@ -148,6 +148,7 @@ class DecoupledSOLOHead(object):
 
         # repeat 7 times
         for i in range(self.stacked_convs):
+            self.in_channels
             conv2d_1 = layers.Conv2D(self.seg_feat_channels, 3, padding='same', strides=1, use_bias=False, data_format='channels_last')
             # gn_1 = GroupNormalization(num_groups=32)
             gn_1 = GroupNormalization(groups=32, axis=3)

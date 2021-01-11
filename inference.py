@@ -130,6 +130,7 @@ if __name__ == '__main__':
     head = DecoupledSOLOHead()
     solo = SOLO(resnet, fpn, head)
     outs = solo(inputs, cfg, eval=True)
+    # outs = solo(inputs, cfg, eval=False)
     solo = models.Model(inputs=inputs, outputs=outs)
     solo.load_weights(model_path, by_name=True)
 
